@@ -62,21 +62,20 @@ function! s:RepeatableYankOperator( type, ... )
 	    " Merge the old, saved blockwise register contents with the new ones
 	    " by pasting both together in a scratch buffer. 
 
-	    hide enew
-	    execute 'normal! "' . l:directRegister . 'P'
+	    silent hide enew
+	    silent execute 'normal! "' . l:directRegister . 'P'
 
 	    " If the new block contains more rows than the register contents,
 	    " the additional blocks are put into the first column unless we
-	    " augment the register contents with empty lines. 
-	    let l:rowOffset = len(split(getreg(l:directRegister), "\n")) - len(split(l:save_reg, "\n"))
-	    let l:augmentedBlock = l:save_reg . repeat("\n", max([0, l:rowOffset]))
-	    echomsg '**** augment' l:rowOffset string(l:augmentedBlock)
-	    call setreg(l:directRegister, l:augmentedBlock, l:save_regtype)
-	    execute 'normal! "' . l:directRegister . 'P'
+	    " explicitly set the block width again by appending nothing. 
+	    " XXX: Don't know why this works this way. 
+	    call setreg(l:directRegister, l:save_reg, l:save_regtype)
+	    call setreg(l:directRegister, '', 'a' . l:save_regtype)
+	    silent execute 'normal! "' . l:directRegister . 'P'
 
-	    execute "normal! \<C-v>G$\"" . l:directRegister . 'y'
-	    buffer #
-	    bdelete! #
+	    silent execute "normal! \<C-v>G$\"" . l:directRegister . 'y'
+	    silent buffer #
+	    silent bdelete! #
 	else
 	    execute 'normal! gv' . l:yankCmd
 	endif
