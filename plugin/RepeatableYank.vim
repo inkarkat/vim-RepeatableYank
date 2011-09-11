@@ -40,13 +40,46 @@ function! s:RepeatableYankOperator( type, ... )
 	let s:register = '"'
     endif
 
+    " Must do this before clobbering the register. 
+    let l:save_reg = getreg(l:useRegister)
+    let l:save_regtype = getregtype(l:useRegister)
+
     " Once the regtype is 'V', subsequent characterwise yanks will be
     " linewise, too. Instead, we want them appended characterwise, in the
     " newline left by the previous linewise yank. 
     call setreg(l:useRegister, '', 'av')
 
     if a:type ==# 'visual'
-	execute 'normal! gv' . l:yankCmd
+	if visualmode() ==# "\<C-v>" && l:save_regtype[0] ==# "\<C-v>"
+	    " When appending a blockwise selection to a blockwise register, we
+	    " want the individual rows merged (so the new block is appended to
+	    " the right), not (what is the built-in behavior) the new blocked
+	    " appended below the existing block. 
+	    let l:directRegister = tolower(l:useRegister)   " Cannot delete via uppercase register name. 
+	    call setreg(l:directRegister, '', '')
+	    execute 'normal! gv' . l:yankCmd
+
+	    " Merge the old, saved blockwise register contents with the new ones
+	    " by pasting both together in a scratch buffer. 
+
+	    hide enew
+	    execute 'normal! "' . l:directRegister . 'P'
+
+	    " If the new block contains more rows than the register contents,
+	    " the additional blocks are put into the first column unless we
+	    " augment the register contents with empty lines. 
+	    let l:rowOffset = len(split(getreg(l:directRegister), "\n")) - len(split(l:save_reg, "\n"))
+	    let l:augmentedBlock = l:save_reg . repeat("\n", max([0, l:rowOffset]))
+	    echomsg '**** augment' l:rowOffset string(l:augmentedBlock)
+	    call setreg(l:directRegister, l:augmentedBlock, l:save_regtype)
+	    execute 'normal! "' . l:directRegister . 'P'
+
+	    execute "normal! \<C-v>G$\"" . l:directRegister . 'y'
+	    buffer #
+	    bdelete! #
+	else
+	    execute 'normal! gv' . l:yankCmd
+	endif
     else
 	" Note: Need to use an "inclusive" selection to make `] include the
 	" last moved-over character. 
