@@ -1,6 +1,9 @@
 " RepeatableYank.vim: Repeatable appending yank to a named register. 
 "
 " DEPENDENCIES:
+"   - Requires Vim 7.0 or higher. 
+"   - repeat.vim (vimscript #2136) autoload script (optional). 
+"   - visualrepeat.vim autoload script (optional). 
 "
 " Copyright: (C) 2011 Ingo Karkat
 "   The VIM LICENSE applies to this script; see ':help copyright'. 
@@ -20,8 +23,10 @@ function! s:SetRegister()
     let s:register = v:register
 endfunction
 function! s:RepeatableYankOperator( type, ... )
-    if s:register == '"'
-	" This is a repetition, append to the last register. 
+    let l:isRepetition = 0
+    if s:register ==# '"'
+	let l:isRepetition = 1
+	" Append to the previously used register. 
 	let l:useRegister = toupper(s:activeRegister)
     else
 	let s:activeRegister = s:register
@@ -30,13 +35,13 @@ function! s:RepeatableYankOperator( type, ... )
     let l:yankCmd = '"' . l:useRegister . 'y'
 "****D echomsg '****' s:register l:yankCmd
     if ! a:0
-	" Repetition of the operatorfunc does not re-invoke
+	" Repetition via '.' of the operatorfunc does not re-invoke
 	" s:RepeatableYankOperatorExpression, so s:register would not be
 	" updated. The repetition also restores the original v:register, so we
-	" cannot use that for the update here, neither. To make the repetition
-	" of the operatorfunc work as we want, we simply clear s:register. All
-	" other (linewise, visual) invocations of this function will set
-	" s:register again, anyhow. 
+	" cannot test that to recognize the repetition here, neither. To make
+	" the repetition of the operatorfunc work as we want, we simply clear
+	" s:register. All other (linewise, visual) invocations of this function
+	" will set s:register again, anyhow. 
 	let s:register = '"'
     endif
 
@@ -45,15 +50,15 @@ function! s:RepeatableYankOperator( type, ... )
     let l:save_regtype = getregtype(l:useRegister)
 
     " Once the regtype is 'V', subsequent characterwise yanks will be
-    " linewise, too. Instead, we want them appended characterwise, in the
+    " linewise, too. Instead, we want them appended characterwise, after the
     " newline left by the previous linewise yank. 
     call setreg(l:useRegister, '', 'av')
 
     if a:type ==# 'visual'
-	if visualmode() ==# "\<C-v>" && l:save_regtype[0] ==# "\<C-v>"
+	if l:isRepetition && visualmode() ==# "\<C-v>" && l:save_regtype[0] ==# "\<C-v>"
 	    " When appending a blockwise selection to a blockwise register, we
 	    " want the individual rows merged (so the new block is appended to
-	    " the right), not (what is the built-in behavior) the new blocked
+	    " the right), not (what is the built-in behavior) the new block
 	    " appended below the existing block. 
 	    let l:directRegister = tolower(l:useRegister)   " Cannot delete via uppercase register name. 
 	    call setreg(l:directRegister, '', '')
@@ -61,16 +66,22 @@ function! s:RepeatableYankOperator( type, ... )
 
 	    " Merge the old, saved blockwise register contents with the new ones
 	    " by pasting both together in a scratch buffer. 
+	    " First paste the new block, then paste the old register contents to
+	    " the left. Pasting to the right would be complicated when there's
+	    " an uneven right border; pasting to the left must account for
+	    " differences in the number of rows. 
 
 	    silent hide enew
 	    silent execute 'normal! "' . l:directRegister . 'P'
 
-	    " If the new block contains more rows than the register contents,
-	    " the additional blocks are put into the first column unless we
-	    " explicitly set the block width again by appending nothing. 
-	    " XXX: Don't know why this works this way. 
-	    call setreg(l:directRegister, l:save_reg, l:save_regtype)
-	    call setreg(l:directRegister, '', 'a' . l:save_regtype)
+		" If the new block contains more rows than the register
+		" contents, the additional blocks are put into the first column
+		" unless we augment the register contents with spaced out lines. 
+		let l:rowOffset = len(split(getreg(l:directRegister), "\n")) - len(split(l:save_reg, "\n"))
+		let l:columnLen = str2nr(l:save_regtype[1:])
+		let l:augmentedBlock = l:save_reg . repeat("\n" . repeat(' ', l:columnLen), max([0, l:rowOffset]))
+
+	    call setreg(l:directRegister, l:augmentedBlock, l:save_regtype)
 	    silent execute 'normal! "' . l:directRegister . 'P'
 
 	    silent execute "normal! \<C-v>G$\"" . l:directRegister . 'y'
