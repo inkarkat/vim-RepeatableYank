@@ -4,6 +4,8 @@
 "   - Requires Vim 7.0 or higher. 
 "   - repeat.vim (vimscript #2136) autoload script (optional). 
 "   - visualrepeat.vim autoload script (optional). 
+"   - EchoWithoutScrolling.vim autoload script (only for Vim 7.0 - 7.2 for
+"     strdisplaywidth() emulation)
 "
 " Copyright: (C) 2011 Ingo Karkat
 "   The VIM LICENSE applies to this script; see ':help copyright'. 
@@ -11,6 +13,11 @@
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS 
+"	002	13-Sep-2011	Factor out s:BlockwiseMergeYank() and
+"				s:BlockAugmentedRegister(). 
+"				Factor out s:AdaptRegtype() and don't adapt
+"				unconditionally to avoid inserting an additional
+"				empty line when doing linewise-linewise yanks. 
 "	001	12-Sep-2011	file creation
 
 " Avoid installing twice or when in unsupported Vim version. 
@@ -21,6 +28,79 @@ let g:loaded_RepeatableYank = 1
 
 function! s:SetRegister()
     let s:register = v:register
+endfunction
+function! s:AdaptRegtype( useRegister, yanktype )
+    if a:yanktype ==# 'visual'
+	let l:yanktype = visualmode()
+    else
+	" Adapt 'operatorfunc' string arguments to visualmode types. 
+	let l:yanktype = {'char': 'v', 'line': 'V', 'block': "\<C-v>"}[a:yanktype]
+    endif
+
+    let l:regtype = getregtype(a:useRegister)[0]
+
+    if l:regtype ==# 'V' && l:yanktype !=# 'V'
+	" Once the regtype is 'V', subsequent characterwise yanks will be
+	" linewise, too. Instead, we want them appended characterwise, after the
+	" newline left by the previous linewise yank. 
+	call setreg(a:useRegister, '', 'av')
+    endif
+endfunction
+function! s:BlockAugmentedRegister( targetContent, content, type )
+    " If the new block contains more rows than the register
+    " contents, the additional blocks are put into the first column
+    " unless we augment the register contents with spaced out lines. 
+    let l:rowOffset = len(split(a:targetContent, "\n")) - len(split(a:content, "\n"))
+    if len(a:type) > 1
+	" The block width comes with the register. 
+	let l:blockWidth = a:type[1:]
+    else
+	" If the register didn't contain a blockwise yank, we must determine the
+	" width ourselves. 
+	let l:blockWidth = max(
+	\   map(
+	\	split(a:content, "\n"),
+	\	(exists('*strdisplaywidth') ?
+	\	    'strdisplaywidth(v:val)' :
+	\	    'EchoWithoutScrolling#DetermineVirtColNum(v:val)'
+	\	)
+	\   )
+	\)
+    endif
+    let l:augmentedBlock = a:content . repeat("\n" . repeat(' ', l:blockWidth), max([0, l:rowOffset]))
+"****D echomsg '****' l:rowOffset l:blockWidth string(l:augmentedBlock)
+    return l:augmentedBlock
+endfunction
+function! s:BlockwiseMergeYank( useRegister, yankCmd, )
+    " Must do this before clobbering the register. 
+    let l:save_reg = getreg(a:useRegister)
+    let l:save_regtype = getregtype(a:useRegister)
+
+    call s:AdaptRegtype(a:useRegister, 'visual')
+
+    " When appending a blockwise selection to a blockwise register, we
+    " want the individual rows merged (so the new block is appended to
+    " the right), not (what is the built-in behavior) the new block
+    " appended below the existing block. 
+    let l:directRegister = tolower(a:useRegister)   " Cannot delete via uppercase register name. 
+    call setreg(l:directRegister, '', '')
+    execute 'normal! gv' . a:yankCmd
+
+    " Merge the old, saved blockwise register contents with the new ones
+    " by pasting both together in a scratch buffer. 
+    " First paste the new block, then paste the old register contents to
+    " the left. Pasting to the right would be complicated when there's
+    " an uneven right border; pasting to the left must account for
+    " differences in the number of rows. 
+    silent hide enew
+    silent execute 'normal! "' . l:directRegister . 'P'
+
+    call setreg(l:directRegister, s:BlockAugmentedRegister(getreg(l:directRegister), l:save_reg, l:save_regtype), "\<C-v>")
+    silent execute 'normal! "' . l:directRegister . 'P'
+
+    silent execute "normal! \<C-v>G$\"" . l:directRegister . 'y'
+    silent buffer #
+    silent bdelete! #
 endfunction
 function! s:RepeatableYankOperator( type, ... )
     let l:isRepetition = 0
@@ -45,52 +125,16 @@ function! s:RepeatableYankOperator( type, ... )
 	let s:register = '"'
     endif
 
-    " Must do this before clobbering the register. 
-    let l:save_reg = getreg(l:useRegister)
-    let l:save_regtype = getregtype(l:useRegister)
-
-    " Once the regtype is 'V', subsequent characterwise yanks will be
-    " linewise, too. Instead, we want them appended characterwise, after the
-    " newline left by the previous linewise yank. 
-    call setreg(l:useRegister, '', 'av')
-
     if a:type ==# 'visual'
-	if l:isRepetition && visualmode() ==# "\<C-v>" && l:save_regtype[0] ==# "\<C-v>"
-	    " When appending a blockwise selection to a blockwise register, we
-	    " want the individual rows merged (so the new block is appended to
-	    " the right), not (what is the built-in behavior) the new block
-	    " appended below the existing block. 
-	    let l:directRegister = tolower(l:useRegister)   " Cannot delete via uppercase register name. 
-	    call setreg(l:directRegister, '', '')
-	    execute 'normal! gv' . l:yankCmd
-
-	    " Merge the old, saved blockwise register contents with the new ones
-	    " by pasting both together in a scratch buffer. 
-	    " First paste the new block, then paste the old register contents to
-	    " the left. Pasting to the right would be complicated when there's
-	    " an uneven right border; pasting to the left must account for
-	    " differences in the number of rows. 
-
-	    silent hide enew
-	    silent execute 'normal! "' . l:directRegister . 'P'
-
-		" If the new block contains more rows than the register
-		" contents, the additional blocks are put into the first column
-		" unless we augment the register contents with spaced out lines. 
-		let l:rowOffset = len(split(getreg(l:directRegister), "\n")) - len(split(l:save_reg, "\n"))
-		let l:columnLen = str2nr(l:save_regtype[1:])
-		let l:augmentedBlock = l:save_reg . repeat("\n" . repeat(' ', l:columnLen), max([0, l:rowOffset]))
-
-	    call setreg(l:directRegister, l:augmentedBlock, l:save_regtype)
-	    silent execute 'normal! "' . l:directRegister . 'P'
-
-	    silent execute "normal! \<C-v>G$\"" . l:directRegister . 'y'
-	    silent buffer #
-	    silent bdelete! #
+	if l:isRepetition && visualmode() ==# "\<C-v>"
+	    call s:BlockwiseMergeYank(l:useRegister, l:yankCmd)
 	else
+	    call s:AdaptRegtype(l:useRegister, a:type)
 	    execute 'normal! gv' . l:yankCmd
 	endif
     else
+	call s:AdaptRegtype(l:useRegister, a:type)
+
 	" Note: Need to use an "inclusive" selection to make `] include the
 	" last moved-over character. 
 	let l:save_selection = &selection
