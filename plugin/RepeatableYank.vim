@@ -2,6 +2,7 @@
 "
 " DEPENDENCIES:
 "   - Requires Vim 7.0 or higher. 
+"   - ingobuffer.vim autoload script. 
 "   - repeat.vim (vimscript #2136) autoload script (optional). 
 "   - visualrepeat.vim autoload script (optional). 
 "   - EchoWithoutScrolling.vim autoload script (only for Vim 7.0 - 7.2 for
@@ -13,6 +14,9 @@
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS 
+"	003	27-Sep-2011	Use ingobuffer#CallInTempBuffer() to hide and
+"				reuse the implementation details of safe
+"				execution in a scratch buffer. 
 "	002	13-Sep-2011	Factor out s:BlockwiseMergeYank() and
 "				s:BlockAugmentedRegister(). 
 "				Factor out s:AdaptRegtype() and don't adapt
@@ -71,7 +75,7 @@ function! s:BlockAugmentedRegister( targetContent, content, type )
 "****D echomsg '****' l:rowOffset l:blockWidth string(l:augmentedBlock)
     return l:augmentedBlock
 endfunction
-function! s:BlockwiseMergeYank( useRegister, yankCmd, )
+function! s:BlockwiseMergeYank( useRegister, yankCmd )
     " Must do this before clobbering the register. 
     let l:save_reg = getreg(a:useRegister)
     let l:save_regtype = getregtype(a:useRegister)
@@ -88,19 +92,19 @@ function! s:BlockwiseMergeYank( useRegister, yankCmd, )
 
     " Merge the old, saved blockwise register contents with the new ones
     " by pasting both together in a scratch buffer. 
+    call ingobuffer#CallInTempBuffer(function('RepeatableYank#TempMerge'), [l:directRegister, l:save_reg, l:save_regtype], 1)
+endfunction
+function! RepeatableYank#TempMerge(directRegister, save_reg, save_regtype)
     " First paste the new block, then paste the old register contents to
     " the left. Pasting to the right would be complicated when there's
     " an uneven right border; pasting to the left must account for
     " differences in the number of rows. 
-    silent hide enew
-    silent execute 'normal! "' . l:directRegister . 'P'
+    execute 'normal! "' . a:directRegister . 'P'
 
-    call setreg(l:directRegister, s:BlockAugmentedRegister(getreg(l:directRegister), l:save_reg, l:save_regtype), "\<C-v>")
-    silent execute 'normal! "' . l:directRegister . 'P'
+    call setreg(a:directRegister, s:BlockAugmentedRegister(getreg(a:directRegister), a:save_reg, a:save_regtype), "\<C-v>")
+    execute 'normal! "' . a:directRegister . 'P'
 
-    silent execute "normal! \<C-v>G$\"" . l:directRegister . 'y'
-    silent buffer #
-    silent bdelete! #
+    execute "normal! \<C-v>G$\"" . a:directRegister . 'y'
 endfunction
 function! s:RepeatableYankOperator( type, ... )
     let l:isRepetition = 0
