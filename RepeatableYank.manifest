@@ -1,0 +1,3 @@
+autoload/EchoWithoutScrolling.vim
+plugin/RepeatableYank.vim
+doc/RepeatableYank.txt
