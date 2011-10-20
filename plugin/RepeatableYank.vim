@@ -177,13 +177,13 @@ nnoremap <expr> <SID>Reselect '1v' . (visualmode() !=# 'V' && &selection ==# 'ex
 nnoremap <silent> <script> <Plug>RepeatableYankVisual <SID>Reselect<SID>RepeatableYankVisual
 
 if ! hasmapto('<Plug>RepeatableYankOperator', 'n')
-    nmap <silent> gy <Plug>RepeatableYankOperator
+    nmap gy <Plug>RepeatableYankOperator
 endif
 if ! hasmapto('<Plug>RepeatableYankLine', 'n')
-    nmap <silent> gyy <Plug>RepeatableYankLine
+    nmap gyy <Plug>RepeatableYankLine
 endif
 if ! hasmapto('<Plug>RepeatableYankVisual', 'x')
-    xmap <silent> gy <Plug>RepeatableYankVisual
+    xmap gy <Plug>RepeatableYankVisual
 endif
 
 " vim: set sts=4 sw=4 noexpandtab ff=unix fdm=syntax :
