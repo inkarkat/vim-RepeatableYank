@@ -10,6 +10,9 @@
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS 
+"	002	21-Oct-2011	Introduce g:RepeatableYank_DefaultRegister to
+"				avoid error when using gy for the first time
+"				without specifying a register. 
 "	001	21-Oct-2011	Split off functions to autoload file. 
 "				file creation
 
@@ -18,6 +21,15 @@ if exists('g:loaded_RepeatableYank') || (v:version < 700)
     finish
 endif
 let g:loaded_RepeatableYank = 1
+
+"- configuration ---------------------------------------------------------------
+
+if ! exists('g:RepeatableYank_DefaultRegister')
+    let g:RepeatableYank_DefaultRegister = 'a'
+endif
+
+
+"- mappings --------------------------------------------------------------------
 
 " This mapping repeats naturally, because it just sets global things, and Vim is
 " able to repeat the g@ on its own. 
