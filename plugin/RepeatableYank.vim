@@ -14,6 +14,11 @@
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS 
+"	004	21-Oct-2011	<SID>Reselect swallows register repeat set by
+"				repeat.vim. This doesn't matter here, because
+"				the default register is treated as an append,
+"				anyway, but it's more in line with the other
+"				usages. 
 "	003	27-Sep-2011	Use ingobuffer#CallInTempBuffer() to hide and
 "				reuse the implementation details of safe
 "				execution in a scratch buffer. 
@@ -171,10 +176,13 @@ nnoremap <expr> <Plug>RepeatableYankOperator <SID>RepeatableYankOperatorExpressi
 " s:RepeatableYankOperator). 
 nnoremap <silent> <Plug>RepeatableYankLine     :<C-u>call <SID>SetRegister()<Bar>execute 'normal! V' . v:count1 . "_\<lt>Esc>"<Bar>call <SID>RepeatableYankOperator('visual', "\<lt>Plug>RepeatableYankLine")<CR>
 " Repeat not defined in visual mode. 
-vnoremap <silent> <SID>RepeatableYankVisual :<C-u>call <SID>SetRegister()<Bar>call <SID>RepeatableYankOperator('visual', "\<lt>Plug>RepeatableYankVisual")<CR>
-vnoremap <silent> <script> <Plug>RepeatableYankVisual <SID>RepeatableYankVisual
-nnoremap <expr> <SID>Reselect '1v' . (visualmode() !=# 'V' && &selection ==# 'exclusive' ? ' ' : '')
-nnoremap <silent> <script> <Plug>RepeatableYankVisual <SID>Reselect<SID>RepeatableYankVisual
+vnoremap <silent> <Plug>RepeatableYankVisual :<C-u>call <SID>SetRegister()<Bar>call <SID>RepeatableYankOperator('visual', "\<lt>Plug>RepeatableYankVisual")<CR>
+
+" A normal-mode repeat of the visual mapping is triggered by repeat.vim. It
+" establishes a new selection at the cursor position, of the same mode and size
+" as the last selection. The register must be handled first, though. 
+nnoremap <expr> <SID>(Reselect) '1v' . (visualmode() !=# 'V' && &selection ==# 'exclusive' ? ' ' : '')
+nnoremap <silent> <script> <Plug>RepeatableYankVisual :<C-u>call <SID>SetRegister()<CR><SID>(Reselect):<C-u>call <SID>RepeatableYankOperator('visual', "\<lt>Plug>RepeatableYankVisual")<CR>
 
 if ! hasmapto('<Plug>RepeatableYankOperator', 'n')
     nmap gy <Plug>RepeatableYankOperator
