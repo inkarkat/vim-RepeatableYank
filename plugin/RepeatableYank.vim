@@ -10,9 +10,16 @@
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS 
-"	002	21-Oct-2011	Introduce g:RepeatableYank_DefaultRegister to
+"	003	21-Oct-2011	Introduce g:RepeatableYank_DefaultRegister to
 "				avoid error when using gy for the first time
 "				without specifying a register. 
+"	002	21-Oct-2011	Note: <SID>Reselect swallows register repeat set
+"				by repeat.vim. This doesn't matter here, because
+"				we don't invoke repeat#setreg() and the default
+"				register is treated as an append, anyway.
+"				However, let's get rid of the
+"				<SID>RepeatableYankVisual mapping and duplicate
+"				the short invocation instead. 
 "	001	21-Oct-2011	Split off functions to autoload file. 
 "				file creation
 
@@ -43,9 +50,12 @@ vnoremap <silent> <Plug>RepeatableYankVisual :<C-u>call RepeatableYank#SetRegist
 
 " A normal-mode repeat of the visual mapping is triggered by repeat.vim. It
 " establishes a new selection at the cursor position, of the same mode and size
-" as the last selection. The register must be handled first, though. 
+" as the last selection. We do not need to handle the register first, because we
+" don't want the register repeated (and therefore don't invoke repeat#setreg()).
+" After <SID>(Reselect), v:register will contain the unnamed register, and that
+" will trigger the desired append to s:activeRegister. 
 nnoremap <expr> <SID>(Reselect) '1v' . (visualmode() !=# 'V' && &selection ==# 'exclusive' ? ' ' : '')
-nnoremap <silent> <script> <Plug>RepeatableYankVisual :<C-u>call RepeatableYank#SetRegister()<CR><SID>(Reselect):<C-u>call RepeatableYank#Operator('visual', "\<lt>Plug>RepeatableYankVisual")<CR>
+nnoremap <silent> <script> <Plug>RepeatableYankVisual <SID>(Reselect):<C-u>call RepeatableYank#SetRegister()<Bar>call RepeatableYank#Operator('visual', "\<lt>Plug>RepeatableYankVisual")<CR>
 
 if ! hasmapto('<Plug>RepeatableYankOperator', 'n')
     nmap gy <Plug>RepeatableYankOperator
