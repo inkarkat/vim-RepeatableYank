@@ -13,6 +13,10 @@
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS 
+"	005	22-Oct-2011	Now that repeat.vim does not automatically
+"				increase b:changedtick, mappings that do not
+"				modify the buffer and repeat naturally need to
+"				invoke repeat#invalidate(). 
 "	004	21-Oct-2011	Introduce g:RepeatableYank_DefaultRegister to
 "				avoid error when using gy for the first time
 "				without specifying a register. 
@@ -159,6 +163,7 @@ function! RepeatableYank#Operator( type, ... )
 	silent! call repeat#set(a:1)
 	silent! call visualrepeat#set_also("\<Plug>RepeatableYankVisual")
     else
+	silent! call repeat#invalidate()
 	silent! call visualrepeat#set("\<Plug>RepeatableYankVisual")
     endif
 endfunction
