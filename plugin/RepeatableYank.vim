@@ -10,6 +10,11 @@
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS 
+"	004	22-Oct-2011	Pull <SID>Reselect into the main mapping (the
+"				final <Esc> is important to "seal" the visual
+"				selection and make it recallable via gv),
+"				because it doesn't multiply the selection size
+"				when [count] is given. 
 "	003	21-Oct-2011	Introduce g:RepeatableYank_DefaultRegister to
 "				avoid error when using gy for the first time
 "				without specifying a register. 
@@ -28,6 +33,8 @@ if exists('g:loaded_RepeatableYank') || (v:version < 700)
     finish
 endif
 let g:loaded_RepeatableYank = 1
+let s:save_cpo = &cpo
+set cpo&vim
 
 "- configuration ---------------------------------------------------------------
 
@@ -42,20 +49,26 @@ endif
 " able to repeat the g@ on its own. 
 nnoremap <expr> <Plug>RepeatableYankOperator RepeatableYank#OperatorExpression()
 " This mapping needs repeat.vim to be repeatable, because it contains of
-" multiple steps (visual selection + 'c' command inside
-" s:RepeatableYankOperator). 
+" multiple steps (visual selection + yank command inside
+" RepeatableYank#Operator). 
 nnoremap <silent> <Plug>RepeatableYankLine     :<C-u>call RepeatableYank#SetRegister()<Bar>execute 'normal! V' . v:count1 . "_\<lt>Esc>"<Bar>call RepeatableYank#Operator('visual', "\<lt>Plug>RepeatableYankLine")<CR>
-" Repeat not defined in visual mode. 
+" Repeat not defined in visual mode, but enabled through visualrepeat.vim. 
 vnoremap <silent> <Plug>RepeatableYankVisual :<C-u>call RepeatableYank#SetRegister()<Bar>call RepeatableYank#Operator('visual', "\<lt>Plug>RepeatableYankVisual")<CR>
 
 " A normal-mode repeat of the visual mapping is triggered by repeat.vim. It
 " establishes a new selection at the cursor position, of the same mode and size
-" as the last selection. We do not need to handle the register first, because we
-" don't want the register repeated (and therefore don't invoke repeat#setreg()).
-" After <SID>(Reselect), v:register will contain the unnamed register, and that
+" as the last selection.
+"   If [count] is given, the size is multiplied accordingly. This has the side
+"   effect that a repeat with [count] will persist the expanded size, which is
+"   different from what the normal-mode repeat does (it keeps the scope of the
+"   original command). 
+" On repetition, v:register will contain the unnamed register (because we do not
+" use repeat#setreg(), and therefore the used register isn't repeated), and that
 " will trigger the desired append to s:activeRegister. 
-nnoremap <expr> <SID>(Reselect) '1v' . (visualmode() !=# 'V' && &selection ==# 'exclusive' ? ' ' : '')
-nnoremap <silent> <script> <Plug>RepeatableYankVisual <SID>(Reselect):<C-u>call RepeatableYank#SetRegister()<Bar>call RepeatableYank#Operator('visual', "\<lt>Plug>RepeatableYankVisual")<CR>
+nnoremap <silent> <Plug>RepeatableYankVisual
+\ :<C-u>call RepeatableYank#SetRegister()<Bar>
+\execute 'normal!' v:count1 . 'v' . (visualmode() !=# 'V' && &selection ==# 'exclusive' ? ' ' : ''). "\<lt>Esc>"<Bar>
+\call RepeatableYank#Operator('visual', "\<lt>Plug>RepeatableYankVisual")<CR>
 
 if ! hasmapto('<Plug>RepeatableYankOperator', 'n')
     nmap gy <Plug>RepeatableYankOperator
@@ -67,4 +80,6 @@ if ! hasmapto('<Plug>RepeatableYankVisual', 'x')
     xmap gy <Plug>RepeatableYankVisual
 endif
 
+let &cpo = s:save_cpo
+unlet s:save_cpo
 " vim: set sts=4 sw=4 noexpandtab ff=unix fdm=syntax :
