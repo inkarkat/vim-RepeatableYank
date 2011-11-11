@@ -13,6 +13,12 @@
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS 
+"	006	07-Nov-2011	ENH: echo number of yanked lines, total lines
+"				now in the register, and register name instead
+"				of the default yank message (or nothing,
+"				depending on 'report'). 
+"				FIX: Suppress temporary paste and yank messages
+"				in blockwise merge yank. 
 "	005	22-Oct-2011	Now that repeat.vim does not automatically
 "				increase b:changedtick, mappings that do not
 "				modify the buffer and repeat naturally need to
@@ -30,6 +36,16 @@
 "				unconditionally to avoid inserting an additional
 "				empty line when doing linewise-linewise yanks. 
 "	001	12-Sep-2011	file creation
+
+if exists('*strchars')
+function! s:strchars( expr )
+    return strchars(a:expr)
+endfunction
+else
+function! s:strchars( expr )
+    return len(split(a:expr, '\zs'))
+endfunction
+endif 
 
 function! RepeatableYank#SetRegister()
     let s:register = v:register
@@ -89,7 +105,7 @@ function! s:BlockwiseMergeYank( useRegister, yankCmd )
     " appended below the existing block. 
     let l:directRegister = tolower(a:useRegister)   " Cannot delete via uppercase register name. 
     call setreg(l:directRegister, '', '')
-    execute 'normal! gv' . a:yankCmd
+    execute 'silent normal! gv' . a:yankCmd
 
     " Merge the old, saved blockwise register contents with the new ones
     " by pasting both together in a scratch buffer. 
@@ -100,12 +116,32 @@ function! RepeatableYank#TempMerge(directRegister, save_reg, save_regtype)
     " the left. Pasting to the right would be complicated when there's
     " an uneven right border; pasting to the left must account for
     " differences in the number of rows. 
-    execute 'normal! "' . a:directRegister . 'P'
+    execute 'silent normal! "' . a:directRegister . 'P'
 
     call setreg(a:directRegister, s:BlockAugmentedRegister(getreg(a:directRegister), a:save_reg, a:save_regtype), "\<C-v>")
     execute 'normal! "' . a:directRegister . 'P'
 
-    execute "normal! \<C-v>G$\"" . a:directRegister . 'y'
+    execute "silent normal! \<C-v>G$\"" . a:directRegister . 'y'
+endfunction
+function! s:YankMessage( visualmode, yankedLines, content )
+    if a:visualmode ==# 'v' && a:yankedLines == 1
+	let l:message = 'text yanked'
+    else
+	let l:message = printf('%d line%s yanked', a:yankedLines, (a:yankedLines == 1 ? '' : 's'))
+	if a:visualmode ==# "\<C-v>"
+	    let l:message = 'block of ' . l:message
+	endif
+    endif
+    let l:lineCnt = (a:content =~# '\n' ? len(split(a:content, "\n")) : 0)
+    if l:lineCnt == 0
+	let l:message .= printf('; %d characters total', s:strchars(a:content))
+    else
+	let l:message .= printf('; %d line%s total', l:lineCnt, (l:lineCnt == 1 ? '' : 's'))
+    endif
+
+    let l:message .= ' in "' . s:activeRegister
+
+    return l:message
 endfunction
 function! RepeatableYank#Operator( type, ... )
     let l:isRepetition = 0
@@ -143,7 +179,7 @@ function! RepeatableYank#Operator( type, ... )
 	    call s:BlockwiseMergeYank(l:useRegister, l:yankCmd)
 	else
 	    call s:AdaptRegtype(l:useRegister, a:type)
-	    execute 'normal! gv' . l:yankCmd
+	    execute 'silent normal! gv' . l:yankCmd
 	endif
     else
 	call s:AdaptRegtype(l:useRegister, a:type)
@@ -153,11 +189,13 @@ function! RepeatableYank#Operator( type, ... )
 	let l:save_selection = &selection
 	set selection=inclusive
 	try
-	    execute 'normal! `[' . (a:type ==# 'line' ? 'V' : 'v') . '`]' . l:yankCmd
+	    execute 'silent normal! `[' . (a:type ==# 'line' ? 'V' : 'v') . '`]' . l:yankCmd
 	finally
 	    let &selection = l:save_selection
 	endtry
     endif
+
+    echomsg s:YankMessage(visualmode(), line("'>") - line("'<") + 1, getreg(l:useRegister))
 
     if a:0
 	silent! call repeat#set(a:1)
