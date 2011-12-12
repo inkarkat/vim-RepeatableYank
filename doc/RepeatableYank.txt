@@ -5,6 +5,7 @@
 description			|RepeatableYank-description|
 usage				|RepeatableYank-usage|
 installation			|RepeatableYank-installation|
+configuration			|RepeatableYank-configuration|
 limitations			|RepeatableYank-limitations|
 known problems			|RepeatableYank-known-problems|
 todo				|RepeatableYank-todo|
@@ -37,10 +38,16 @@ USAGE							*RepeatableYank-usage*
 ["x]gy{motion}		Yank {motion} text into register x. 
 ["x][count]gyy		Yank [count] lines into register x. 
 {Visual}["x]gy		Yank the selected text into register x. 
+
 			Subsequent gy commands without an explicit register
-			and a command repeat via |.| will append the text to
-			the previously used register x, until an explicit
-			register is given. 
+			and command repeats via |.| will append (in the case
+			of named registers {a-zA-Z}) the text to / overwrite
+			(for registers {0-9*+~/-}) the previously used
+			register x, until an explicit register is given. 
+
+			Therefore, you can gradually build up text in a named
+			register, or easily update the system clipboard
+			without having to repeat the register on every yank. 
 			
 EXAMPLE						      *RepeatableYank-example*
 
@@ -98,6 +105,18 @@ DEPENDENCIES					 *RepeatableYank-dependencies*
 - visualrepeat.vim autoload script (optional). 
 
 ==============================================================================
+CONFIGURATION					*RepeatableYank-configuration*
+
+For a permanent configuration, put the following commands into your |vimrc|: 
+
+					    *g:RepeatableYank_DefaultRegister*
+Since you don't need this plugin to repeat yanks to the unnamed register (just
+use the built-in |y|), register "a is used as the default register, i.e. when
+you use |gy| for the first time without explicitly specifying a register. To
+change this default to another register (e.g. the clipboard), use: >
+    let g:RepeatableYank_DefaultRegister = '+'
+<
+==============================================================================
 LIMITATIONS					  *RepeatableYank-limitations*
 
 KNOWN PROBLEMS				       *RepeatableYank-known-problems*
@@ -109,7 +128,7 @@ IDEAS							*RepeatableYank-ideas*
 ==============================================================================
 HISTORY						      *RepeatableYank-history*
 
-1.00	12-Sep-2011
+1.00	21-Oct-2011
 First published version. 
 
 0.01	12-Sep-2011
