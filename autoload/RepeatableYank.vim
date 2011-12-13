@@ -13,6 +13,8 @@
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS 
+"	007	06-Dec-2011	Retire visualrepeat#set_also(); use
+"				visualrepeat#set() everywhere. 
 "	006	07-Nov-2011	ENH: echo number of yanked lines, total lines
 "				now in the register, and register name instead
 "				of the default yank message (or nothing,
@@ -199,11 +201,10 @@ function! RepeatableYank#Operator( type, ... )
 
     if a:0
 	silent! call repeat#set(a:1)
-	silent! call visualrepeat#set_also("\<Plug>RepeatableYankVisual")
     else
 	silent! call repeat#invalidate()
-	silent! call visualrepeat#set("\<Plug>RepeatableYankVisual")
     endif
+    silent! call visualrepeat#set("\<Plug>RepeatableYankVisual")
 endfunction
 function! RepeatableYank#OperatorExpression()
     call RepeatableYank#SetRegister()
