@@ -3,7 +3,7 @@
 " DEPENDENCIES:
 "   - ingobuffer.vim autoload script. 
 "   - repeat.vim (vimscript #2136) autoload script (optional). 
-"   - visualrepeat.vim autoload script (optional). 
+"   - visualrepeat.vim (vimscript #3848) autoload script (optional). 
 "   - EchoWithoutScrolling.vim autoload script (only for Vim 7.0 - 7.2 for
 "     strdisplaywidth() emulation)
 "
