@@ -101,8 +101,8 @@ To uninstall, use the |:RmVimball| command.
 DEPENDENCIES					 *RepeatableYank-dependencies*
 
 - Requires Vim 7.0 or higher. 
-- repeat.vim (vimscript #2136) autoload script (optional). 
-- visualrepeat.vim autoload script (optional). 
+- repeat.vim (vimscript #2136) plugin (optional). 
+- visualrepeat.vim (vimscript #3848) plugin (optional). 
 
 ==============================================================================
 CONFIGURATION					*RepeatableYank-configuration*
