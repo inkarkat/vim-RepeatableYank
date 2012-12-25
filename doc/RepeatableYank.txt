@@ -1,6 +1,6 @@
-*RepeatableYank.txt*    Repeatable appending yank to a named register. 
-		        
-		       REPEATABLE YANK    by Ingo Karkat
+*RepeatableYank.txt*    Repeatable appending yank to a named register.
+
+		      REPEATABLE YANK    by Ingo Karkat
 							  *RepeatableYank.vim*
 description			|RepeatableYank-description|
 usage				|RepeatableYank-usage|
@@ -15,40 +15,38 @@ history				|RepeatableYank-history|
 DESCRIPTION					  *RepeatableYank-description*
 
 Text fragments can be collected and accumulated by first yanking into a
-lowercase register, and then subsequently yanking into the uppercase variant. 
+lowercase register, and then subsequently yanking into the uppercase variant.
 The problem is that the register must be specified on every yank command, and
 one accidental omission of uppercasing the register results in the
-irrecoverable loss of all collected fragments. 
+irrecoverable loss of all fragments collected so far.
 
 This can be somewhat remedied by enabling the non-default |cpo-y| setting,
-which allows a repeat of a yank (plus remembered last register) via |.| 
+which allows a repeat of a yank (plus remembered last register) via |.|
 
 This plugin instead offers an alternative yank command |gy|, which allows to
-specify the accumulator register only once on its initial use, can be repeated
-as operator, linewise and visual modes and via |.|, and enhances some yank
-semantics for special cases.  For example, subsequent blockwise yanks are now
-merged as blocks to the right, instead of added below the existing text
-blocks. 
-
-RELATED WORKS								     *
+specify the accumulator register only once on its initial use, can then be
+repeated as an operator, linewise, in visual mode and via |.|, and enhances
+some yank semantics for special cases.  For example, subsequent blockwise
+yanks are merged as blocks to the right, instead of added below the existing
+text blocks.
 
 ==============================================================================
 USAGE							*RepeatableYank-usage*
 							     *gy* *gyy* *v_gy*
-["x]gy{motion}		Yank {motion} text into register x. 
-["x][count]gyy		Yank [count] lines into register x. 
-{Visual}["x]gy		Yank the selected text into register x. 
+["x]gy{motion}		Yank {motion} text into register x.
+["x][count]gyy		Yank [count] lines into register x.
+{Visual}["x]gy		Yank the selected text into register x.
 
 			Subsequent gy commands without an explicit register
 			and command repeats via |.| will append (in the case
 			of named registers {a-zA-Z}) the text to / overwrite
 			(for registers {0-9*+~/-}) the previously used
-			register x, until an explicit register is given. 
-
+			register x, until another register is explicitly
+			given.
 			Therefore, you can gradually build up text in a named
 			register, or easily update the system clipboard
-			without having to repeat the register on every yank. 
-			
+			without having to repeat the register on every yank.
+
 EXAMPLE						      *RepeatableYank-example*
 
 Start by yanking "an entire line" into register a: >
@@ -91,23 +89,23 @@ without starting over, just specify the uppercase register name: >
 INSTALLATION					 *RepeatableYank-installation*
 
 This script is packaged as a |vimball|. If you have the "gunzip" decompressor
-in your PATH, simply edit the *.vba.gz package in Vim; otherwise, decompress
+in your PATH, simply edit the *.vmb.gz package in Vim; otherwise, decompress
 the archive first, e.g. using WinZip. Inside Vim, install by sourcing the
 vimball or via the |:UseVimball| command. >
-    vim RepeatableYank.vba.gz
+    vim RepeatableYank*.vmb.gz
     :so %
-To uninstall, use the |:RmVimball| command. 
+To uninstall, use the |:RmVimball| command.
 
 DEPENDENCIES					 *RepeatableYank-dependencies*
 
-- Requires Vim 7.0 or higher. 
-- repeat.vim (vimscript #2136) plugin (optional). 
-- visualrepeat.vim (vimscript #3848) plugin (optional). 
+- Requires Vim 7.0 or higher.
+- repeat.vim (vimscript #2136) plugin (optional).
+- visualrepeat.vim (vimscript #3848) plugin (optional).
 
 ==============================================================================
 CONFIGURATION					*RepeatableYank-configuration*
 
-For a permanent configuration, put the following commands into your |vimrc|: 
+For a permanent configuration, put the following commands into your |vimrc|:
 
 					    *g:RepeatableYank_DefaultRegister*
 Since you don't need this plugin to repeat yanks to the unnamed register (just
@@ -128,15 +126,15 @@ IDEAS							*RepeatableYank-ideas*
 ==============================================================================
 HISTORY						      *RepeatableYank-history*
 
-1.00	21-Oct-2011
-First published version. 
+1.00	24-Sep-2012
+First published version.
 
 0.01	12-Sep-2011
-Started development. 
+Started development.
 
 ==============================================================================
-Copyright: (C) 2011 Ingo Karkat
-The VIM LICENSE applies to this script; see |copyright|. 
+Copyright: (C) 2011-2012 Ingo Karkat
+The VIM LICENSE applies to this script; see |copyright|.
 
 Maintainer:	Ingo Karkat <ingo@karkat.de>
 ==============================================================================
