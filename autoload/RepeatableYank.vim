@@ -13,6 +13,8 @@
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS
+"   1.10.008	26-Dec-2012	ENH: Add alternative gly mapping to yank as new
+"				line.
 "   1.00.007	06-Dec-2011	Retire visualrepeat#set_also(); use
 "				visualrepeat#set() everywhere.
 "	006	07-Nov-2011	ENH: echo number of yanked lines, total lines
@@ -52,21 +54,28 @@ endif
 function! RepeatableYank#SetRegister()
     let s:register = v:register
 endfunction
-function! s:AdaptRegtype( useRegister, yanktype )
-    if a:yanktype ==# 'visual'
-	let l:yanktype = visualmode()
+function! s:AdaptRegtype( useRegister, yanktype, isAsLine )
+    if a:isAsLine
+	if getregtype(a:useRegister) !=# 'V'
+	    " This ensures a trailing newline character.
+	    call setreg(a:useRegister, '', 'aV')
+	endif
     else
-	" Adapt 'operatorfunc' string arguments to visualmode types.
-	let l:yanktype = {'char': 'v', 'line': 'V', 'block': "\<C-v>"}[a:yanktype]
-    endif
+	if a:yanktype ==# 'visual'
+	    let l:yanktype = visualmode()
+	else
+	    " Adapt 'operatorfunc' string arguments to visualmode types.
+	    let l:yanktype = {'char': 'v', 'line': 'V', 'block': "\<C-v>"}[a:yanktype]
+	endif
 
-    let l:regtype = getregtype(a:useRegister)[0]
+	let l:regtype = getregtype(a:useRegister)[0]
 
-    if l:regtype ==# 'V' && l:yanktype !=# 'V'
-	" Once the regtype is 'V', subsequent characterwise yanks will be
-	" linewise, too. Instead, we want them appended characterwise, after the
-	" newline left by the previous linewise yank.
-	call setreg(a:useRegister, '', 'av')
+	if l:regtype ==# 'V' && l:yanktype !=# 'V'
+	    " Once the regtype is 'V', subsequent characterwise yanks will be
+	    " linewise, too. Instead, we want them appended characterwise, after the
+	    " newline left by the previous linewise yank.
+	    call setreg(a:useRegister, '', 'av')
+	endif
     endif
 endfunction
 function! s:BlockAugmentedRegister( targetContent, content, type )
@@ -99,7 +108,7 @@ function! s:BlockwiseMergeYank( useRegister, yankCmd )
     let l:save_reg = getreg(a:useRegister)
     let l:save_regtype = getregtype(a:useRegister)
 
-    call s:AdaptRegtype(a:useRegister, 'visual')
+    call s:AdaptRegtype(a:useRegister, 'visual', 0)
 
     " When appending a blockwise selection to a blockwise register, we
     " want the individual rows merged (so the new block is appended to
@@ -145,7 +154,7 @@ function! s:YankMessage( visualmode, yankedLines, content )
 
     return l:message
 endfunction
-function! RepeatableYank#Operator( type, ... )
+function! s:Operator( isAsLine, type, ... )
     let l:isRepetition = 0
     if s:register ==# '"'
 	let l:isRepetition = 1
@@ -177,14 +186,14 @@ function! RepeatableYank#Operator( type, ... )
     endif
 
     if a:type ==# 'visual'
-	if l:isRepetition && visualmode() ==# "\<C-v>"
+	if l:isRepetition && visualmode() ==# "\<C-v>" && ! a:isAsLine
 	    call s:BlockwiseMergeYank(l:useRegister, l:yankCmd)
 	else
-	    call s:AdaptRegtype(l:useRegister, a:type)
+	    call s:AdaptRegtype(l:useRegister, a:type, a:isAsLine)
 	    execute 'silent normal! gv' . l:yankCmd
 	endif
     else
-	call s:AdaptRegtype(l:useRegister, a:type)
+	call s:AdaptRegtype(l:useRegister, a:type, a:isAsLine)
 
 	" Note: Need to use an "inclusive" selection to make `] include the
 	" last moved-over character.
@@ -206,9 +215,20 @@ function! RepeatableYank#Operator( type, ... )
     endif
     silent! call visualrepeat#set("\<Plug>RepeatableYankVisual")
 endfunction
+function! RepeatableYank#Operator( type, ... )
+    return call('s:Operator', [0, a:type] + a:000)
+endfunction
+function! RepeatableYank#OperatorAsLine( type, ... )
+    return call('s:Operator', [1, a:type] + a:000)
+endfunction
 function! RepeatableYank#OperatorExpression()
     call RepeatableYank#SetRegister()
     set opfunc=RepeatableYank#Operator
+    return 'g@'
+endfunction
+function! RepeatableYank#OperatorAsLineExpression()
+    call RepeatableYank#SetRegister()
+    set opfunc=RepeatableYank#OperatorAsLine
     return 'g@'
 endfunction
 
