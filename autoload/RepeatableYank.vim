@@ -213,7 +213,7 @@ function! s:Operator( isAsLine, type, ... )
     else
 	silent! call repeat#invalidate()
     endif
-    silent! call visualrepeat#set("\<Plug>RepeatableYankVisual")
+    silent! call visualrepeat#set(a:isAsLine ? "\<Plug>RepeatableYankAsLineVisual" : "\<Plug>RepeatableYankVisual")
 endfunction
 function! RepeatableYank#Operator( type, ... )
     return call('s:Operator', [0, a:type] + a:000)
