@@ -136,17 +136,23 @@ function! s:BlockwiseMergeYank( useRegister, yankCmd )
     " by pasting both together in a scratch buffer.
     call ingobuffer#CallInTempBuffer(function('RepeatableYank#TempMerge'), [l:directRegister, l:save_reg, l:save_regtype], 1)
 endfunction
-function! RepeatableYank#TempMerge(directRegister, save_reg, save_regtype)
+function! RepeatableYank#TempMerge( directRegister, save_reg, save_regtype )
+10wincmd _
+unsilent echomsg '**** new' getregtype(a:directRegister) string(getreg(a:directRegister))
+unsilent echomsg '**** old' a:save_regtype string(a:save_reg)
     " First paste the new block, then paste the old register contents to
     " the left. Pasting to the right would be complicated when there's
     " an uneven right border; pasting to the left must account for
     " differences in the number of rows.
     execute 'silent normal! "' . a:directRegister . 'P'
-
+redraw | sleep 4
     call setreg(a:directRegister, s:BlockAugmentedRegister(getreg(a:directRegister), a:save_reg, a:save_regtype), "\<C-v>")
-    execute 'normal! "' . a:directRegister . 'P'
+    execute 'normal! 0"' . a:directRegister . 'P'
+redraw | sleep 4
 
-    execute "silent normal! \<C-v>G$\"" . a:directRegister . 'y'
+    execute "silent normal! 0\<C-v>G$\"" . a:directRegister . 'y'
+unsilent echomsg '**** res' getregtype(a:directRegister) string(getreg(a:directRegister))
+redraw | sleep 4
 endfunction
 function! s:YankMessage( visualmode, yankedLines, content )
     if a:visualmode ==# 'v' && a:yankedLines == 1
