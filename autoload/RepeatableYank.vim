@@ -13,6 +13,9 @@
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS
+"   1.10.009	27-Dec-2012	Need special case for turning blockwise register
+"				into linewise to avoid that _two_ newlines are
+"				appended.
 "   1.10.008	26-Dec-2012	ENH: Add alternative gly mapping to yank as new
 "				line.
 "   1.00.007	06-Dec-2011	Retire visualrepeat#set_also(); use
@@ -57,8 +60,19 @@ endfunction
 function! s:AdaptRegtype( useRegister, yanktype, isAsLine )
     if a:isAsLine
 	if getregtype(a:useRegister) !=# 'V'
-	    " This ensures a trailing newline character.
-	    call setreg(a:useRegister, '', 'aV')
+	    if getregtype(a:useRegister) ==# 'v'
+		" This ensures a trailing newline character.
+		call setreg(a:useRegister, '', 'aV')
+	    else
+		" XXX: Above appends two newline characters; probably, because
+		" the change away from blockwise mode inserts the previously
+		" implicit trailing newline, making the register characterwise;
+		" then, the switch to linewise appends another newline.
+		" Work around this by overwriting the contents with itself
+		" instead of appending nothing.
+		let l:directRegister = tolower(a:useRegister)   " Cannot override via uppercase register name.
+		call setreg(l:directRegister, getreg(l:directRegister), 'V')
+	    endif
 	endif
     else
 	if a:yanktype ==# 'visual'
