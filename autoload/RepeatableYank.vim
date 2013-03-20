@@ -16,6 +16,12 @@
 "   1.10.009	27-Dec-2012	Need special case for turning blockwise register
 "				into linewise to avoid that _two_ newlines are
 "				appended.
+"				FIX: When appending a block consisting of a
+"				single line, the merge doesn't capture the new
+"				block at all. With a single line, the cursor
+"				position after the initial paste is different.
+"				Explicitly move the cursor to column 1 via 0
+"				first.
 "   1.10.008	26-Dec-2012	ENH: Add alternative gly mapping to yank as new
 "				line.
 "   1.00.007	06-Dec-2011	Retire visualrepeat#set_also(); use
@@ -137,22 +143,15 @@ function! s:BlockwiseMergeYank( useRegister, yankCmd )
     call ingobuffer#CallInTempBuffer(function('RepeatableYank#TempMerge'), [l:directRegister, l:save_reg, l:save_regtype], 1)
 endfunction
 function! RepeatableYank#TempMerge( directRegister, save_reg, save_regtype )
-10wincmd _
-unsilent echomsg '**** new' getregtype(a:directRegister) string(getreg(a:directRegister))
-unsilent echomsg '**** old' a:save_regtype string(a:save_reg)
     " First paste the new block, then paste the old register contents to
     " the left. Pasting to the right would be complicated when there's
     " an uneven right border; pasting to the left must account for
     " differences in the number of rows.
     execute 'silent normal! "' . a:directRegister . 'P'
-redraw | sleep 4
     call setreg(a:directRegister, s:BlockAugmentedRegister(getreg(a:directRegister), a:save_reg, a:save_regtype), "\<C-v>")
     execute 'normal! 0"' . a:directRegister . 'P'
-redraw | sleep 4
 
     execute "silent normal! 0\<C-v>G$\"" . a:directRegister . 'y'
-unsilent echomsg '**** res' getregtype(a:directRegister) string(getreg(a:directRegister))
-redraw | sleep 4
 endfunction
 function! s:YankMessage( visualmode, yankedLines, content )
     if a:visualmode ==# 'v' && a:yankedLines == 1
