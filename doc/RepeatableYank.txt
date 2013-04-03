@@ -178,6 +178,9 @@ IDEAS							*RepeatableYank-ideas*
 ==============================================================================
 HISTORY						      *RepeatableYank-history*
 
+1.11	RELEASEME
+Avoid changing the jumplist.
+
 1.10	27-Dec-2012
 - ENH: Add alternative gly mapping to yank as new line.
 - FIX: When appending a block consisting of a single line, the merge doesn't
@@ -190,7 +193,7 @@ First published version.
 Started development.
 
 ==============================================================================
-Copyright: (C) 2011-2012 Ingo Karkat
+Copyright: (C) 2011-2013 Ingo Karkat
 The VIM LICENSE applies to this plugin; see |copyright|.
 
 Maintainer:	Ingo Karkat <ingo@karkat.de>
