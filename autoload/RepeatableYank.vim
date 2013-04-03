@@ -7,12 +7,13 @@
 "   - EchoWithoutScrolling.vim autoload script (only for Vim 7.0 - 7.2 for
 "     strdisplaywidth() emulation)
 "
-" Copyright: (C) 2011-2012 Ingo Karkat
+" Copyright: (C) 2011-2013 Ingo Karkat
 "   The VIM LICENSE applies to this script; see ':help copyright'.
 "
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS
+"   1.11.010	21-Mar-2013	Avoid changing the jumplist.
 "   1.10.009	27-Dec-2012	Need special case for turning blockwise register
 "				into linewise to avoid that _two_ newlines are
 "				appended.
@@ -219,7 +220,7 @@ function! s:Operator( isAsLine, type, ... )
 	let l:save_selection = &selection
 	set selection=inclusive
 	try
-	    execute 'silent normal! `[' . (a:type ==# 'line' ? 'V' : 'v') . '`]' . l:yankCmd
+	    execute 'silent normal! g`[' . (a:type ==# 'line' ? 'V' : 'v') . 'g`]' . l:yankCmd
 	finally
 	    let &selection = l:save_selection
 	endtry
