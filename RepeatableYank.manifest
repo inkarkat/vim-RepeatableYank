@@ -1,3 +1,5 @@
+autoload/ingobuffer.vim
 autoload/EchoWithoutScrolling.vim
+autoload/RepeatableYank.vim
 plugin/RepeatableYank.vim
 doc/RepeatableYank.txt
