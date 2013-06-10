@@ -140,7 +140,7 @@ DEPENDENCIES					 *RepeatableYank-dependencies*
 - Requires the |ingo-library.vim| plugin (vimscript #4433), version 1.004 or
   higher.
 - repeat.vim (vimscript #2136) plugin (optional).
-- visualrepeat.vim (vimscript #3848) plugin (optional).
+- visualrepeat.vim (vimscript #3848) plugin (version 2.00 or higher; optional)
 
 ==============================================================================
 CONFIGURATION					*RepeatableYank-configuration*
@@ -180,9 +180,13 @@ IDEAS							*RepeatableYank-ideas*
 ==============================================================================
 HISTORY						      *RepeatableYank-history*
 
-1.11	RELEASEME
+1.20	RELEASEME
 - Avoid changing the jumplist.
 - Add dependency to ingo-library (vimscript #4433).
+- Use optional visualrepeat#reapply#VisualMode() for normal mode repeat of a
+  visual mapping. When supplying a [count] on such repeat of a previous
+  linewise selection, now [count] number of lines instead of [count] times the
+  original selection is used.
 
 1.10	27-Dec-2012
 - ENH: Add alternative gly mapping to yank as new line.
