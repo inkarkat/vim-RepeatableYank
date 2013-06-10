@@ -5,6 +5,7 @@
 "   - ingobuffer.vim autoload script
 "   - repeat.vim (vimscript #2136) autoload script (optional)
 "   - visualrepeat.vim (vimscript #3848) autoload script (optional)
+"   - visualrepeat/reapply.vim autoload script (optional)
 "
 " Copyright: (C) 2011-2013 Ingo Karkat
 "   The VIM LICENSE applies to this script; see ':help copyright'.
@@ -12,6 +13,8 @@
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS
+"   1.20.012	18-Apr-2013	Add RepeatableYank#VisualMode() wrapper around
+"				visualrepeat#reapply#VisualMode().
 "   1.11.011	04-Apr-2013	Use ingo/compat.vim for strchars() and
 "				strdisplaywidth().
 "   1.11.010	21-Mar-2013	Avoid changing the jumplist.
@@ -238,6 +241,12 @@ function! RepeatableYank#OperatorAsLineExpression()
     call RepeatableYank#SetRegister()
     set opfunc=RepeatableYank#OperatorAsLine
     return 'g@'
+endfunction
+
+function! RepeatableYank#VisualMode()
+    let l:keys = "1v\<Esc>"
+    silent! let l:keys = visualrepeat#reapply#VisualMode(0)
+    return l:keys
 endfunction
 
 " vim: set ts=8 sts=4 sw=4 noexpandtab ff=unix fdm=syntax :
