@@ -34,7 +34,7 @@ text blocks.
 USAGE							*RepeatableYank-usage*
 							     *gy* *gyy* *v_gy*
 ["x]gy{motion}		Yank {motion} text into register x.
-["x][count]gyy		Yank [count] lines into register x.
+[count]["x]gyy		Yank [count] lines into register x.
 {Visual}["x]gy		Yank the selected text into register x.
 
 			Subsequent gy commands without an explicit register
@@ -201,7 +201,7 @@ First published version.
 Started development.
 
 ==============================================================================
-Copyright: (C) 2011-2013 Ingo Karkat
+Copyright: (C) 2011-2014 Ingo Karkat
 The VIM LICENSE applies to this plugin; see |copyright|.
 
 Maintainer:	Ingo Karkat <ingo@karkat.de>
