@@ -1,4 +1,3 @@
-autoload/ingobuffer.vim
 autoload/RepeatableYank.vim
 plugin/RepeatableYank.vim
 doc/RepeatableYank.txt
