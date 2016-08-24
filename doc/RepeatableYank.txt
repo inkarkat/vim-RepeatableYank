@@ -30,6 +30,11 @@ some yank semantics for special cases.  For example, subsequent blockwise
 yanks are merged as blocks to the right, instead of added below the existing
 text blocks.
 
+RELATED WORKS								     *
+
+- AppendToClip (vimscript #5118) defines repeatable mappings that (delete and)
+  append to the default register.
+
 ==============================================================================
 USAGE							*RepeatableYank-usage*
 							     *gy* *gyy* *v_gy*
@@ -201,7 +206,7 @@ First published version.
 Started development.
 
 ==============================================================================
-Copyright: (C) 2011-2014 Ingo Karkat
+Copyright: (C) 2011-2015 Ingo Karkat
 The VIM LICENSE applies to this plugin; see |copyright|.
 
 Maintainer:	Ingo Karkat <ingo@karkat.de>
