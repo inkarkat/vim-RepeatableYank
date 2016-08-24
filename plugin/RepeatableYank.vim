@@ -60,10 +60,17 @@ nnoremap <expr> <Plug>RepeatableYankAsLineOperator RepeatableYank#OperatorAsLine
 " This mapping needs repeat.vim to be repeatable, because it contains of
 " multiple steps (visual selection + yank command inside
 " RepeatableYank#Operator).
-nnoremap <silent> <Plug>RepeatableYankLine         :<C-u>call RepeatableYank#SetRegister()<Bar>execute 'normal! V' . v:count1 . "_\<lt>Esc>"<Bar>call RepeatableYank#Operator('visual', "\<lt>Plug>RepeatableYankLine")<CR>
+nnoremap <silent> <Plug>RepeatableYankLine
+\ :<C-u>call RepeatableYank#SetRegister()<Bar>
+\execute 'normal! V' . v:count1 . "_\<lt>Esc>"<Bar>
+\call RepeatableYank#Operator('visual', "\<lt>Plug>RepeatableYankLine")<CR>
 " Repeat not defined in visual mode, but enabled through visualrepeat.vim.
-vnoremap <silent> <Plug>RepeatableYankVisual       :<C-u>call RepeatableYank#SetRegister()<Bar>call RepeatableYank#Operator('visual', "\<lt>Plug>RepeatableYankVisual")<CR>
-vnoremap <silent> <Plug>RepeatableYankAsLineVisual :<C-u>call RepeatableYank#SetRegister()<Bar>call RepeatableYank#OperatorAsLine('visual', "\<lt>Plug>RepeatableYankAsLineVisual")<CR>
+vnoremap <silent> <Plug>RepeatableYankVisual
+\ :<C-u>call RepeatableYank#SetRegister()<Bar>
+\call RepeatableYank#Operator('visual', "\<lt>Plug>RepeatableYankVisual")<CR>
+vnoremap <silent> <Plug>RepeatableYankAsLineVisual
+\ :<C-u>call RepeatableYank#SetRegister()<Bar>
+\call RepeatableYank#OperatorAsLine('visual', "\<lt>Plug>RepeatableYankAsLineVisual")<CR>
 
 " A normal-mode repeat of the visual mapping is triggered by repeat.vim. It
 " establishes a new selection at the cursor position, of the same mode and size
