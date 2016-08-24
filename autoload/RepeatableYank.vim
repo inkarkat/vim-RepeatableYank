@@ -2,7 +2,7 @@
 "
 " DEPENDENCIES:
 "   - ingo/compat.vim autoload script
-"   - ingobuffer.vim autoload script
+"   - ingo/buffer/temp.vim autoload script
 "   - repeat.vim (vimscript #2136) autoload script (optional)
 "   - visualrepeat.vim (vimscript #3848) autoload script (optional)
 "   - visualrepeat/reapply.vim autoload script (optional)
@@ -13,6 +13,8 @@
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS
+"   1.20.013	11-Jun-2013	Move ingobuffer#CallInTempBuffer() to
+"				ingo#buffer#temp#Call().
 "   1.20.012	18-Apr-2013	Add RepeatableYank#VisualMode() wrapper around
 "				visualrepeat#reapply#VisualMode().
 "   1.11.011	04-Apr-2013	Use ingo/compat.vim for strchars() and
@@ -132,7 +134,7 @@ function! s:BlockwiseMergeYank( useRegister, yankCmd )
 
     " Merge the old, saved blockwise register contents with the new ones
     " by pasting both together in a scratch buffer.
-    call ingobuffer#CallInTempBuffer(function('RepeatableYank#TempMerge'), [l:directRegister, l:save_reg, l:save_regtype], 1)
+    call ingo#buffer#temp#Call(function('RepeatableYank#TempMerge'), [l:directRegister, l:save_reg, l:save_regtype], 1)
 endfunction
 function! RepeatableYank#TempMerge( directRegister, save_reg, save_regtype )
     " First paste the new block, then paste the old register contents to
