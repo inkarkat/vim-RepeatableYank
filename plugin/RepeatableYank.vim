@@ -4,12 +4,17 @@
 "   - Requires Vim 7.0 or higher.
 "   - RepeatableYank.vim autoload script.
 "
-" Copyright: (C) 2011-2013 Ingo Karkat
+" Copyright: (C) 2011-2016 Ingo Karkat
 "   The VIM LICENSE applies to this script; see ':help copyright'.
 "
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS
+"   1.21.007	25-Aug-2016	BUG: {count}gyy does not repeat the count, as
+"				the :normal command to establish the selection
+"				clears it. Invoke RepeatableYank#SetCount()
+"				first, and pass new a:isRepeatCount argument to
+"				RepeatableYank#Operator().
 "   1.20.006	18-Apr-2013	Use optional visualrepeat#reapply#VisualMode()
 "				for normal mode repeat of a visual mapping.
 "				When supplying a [count] on such repeat of a
@@ -62,8 +67,9 @@ nnoremap <expr> <Plug>RepeatableYankAsLineOperator RepeatableYank#OperatorAsLine
 " RepeatableYank#Operator).
 nnoremap <silent> <Plug>RepeatableYankLine
 \ :<C-u>call RepeatableYank#SetRegister()<Bar>
+\call RepeatableYank#SetCount()<Bar>
 \execute 'normal! V' . v:count1 . "_\<lt>Esc>"<Bar>
-\call RepeatableYank#Operator('visual', "\<lt>Plug>RepeatableYankLine")<CR>
+\call RepeatableYank#Operator('visual', "\<lt>Plug>RepeatableYankLine", 1)<CR>
 " Repeat not defined in visual mode, but enabled through visualrepeat.vim.
 vnoremap <silent> <Plug>RepeatableYankVisual
 \ :<C-u>call RepeatableYank#SetRegister()<Bar>
