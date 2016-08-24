@@ -7,12 +7,17 @@
 "   - visualrepeat.vim (vimscript #3848) autoload script (optional)
 "   - visualrepeat/reapply.vim autoload script (optional)
 "
-" Copyright: (C) 2011-2013 Ingo Karkat
+" Copyright: (C) 2011-2016 Ingo Karkat
 "   The VIM LICENSE applies to this script; see ':help copyright'.
 "
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS
+"   1.21.014	23-Aug-2016	BUG: {count}gyy does not repeat the count.
+"				Add RepeatableYank#SetCount() and new
+"				a:isRepeatCount argument to
+"				ReplaceWithRegister#Operator() that then passes
+"				the stored s:count to repeat#set()..
 "   1.20.013	11-Jun-2013	Move ingobuffer#CallInTempBuffer() to
 "				ingo#buffer#temp#Call().
 "   1.20.012	18-Apr-2013	Add RepeatableYank#VisualMode() wrapper around
@@ -59,6 +64,9 @@
 
 function! RepeatableYank#SetRegister()
     let s:register = v:register
+endfunction
+function! RepeatableYank#SetCount()
+    let s:count = v:count
 endfunction
 function! s:AdaptRegtype( useRegister, yanktype, isAsLine )
     if a:isAsLine
@@ -222,7 +230,11 @@ function! s:Operator( isAsLine, type, ... )
     echomsg s:YankMessage(visualmode(), line("'>") - line("'<") + 1, getreg(l:useRegister))
 
     if a:0
-	silent! call repeat#set(a:1)
+	if a:0 >= 2 && a:2
+	    silent! call repeat#set(a:1, s:count)
+	else
+	    silent! call repeat#set(a:1)
+	endif
     else
 	silent! call repeat#invalidate()
     endif
