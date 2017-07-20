@@ -61,7 +61,7 @@ USAGE							*RepeatableYank-usage*
 			    cd    cd ~
 				  12 ~
 				  34 ~
-
+								 *gly* *v_gly*
 ["x]gly{motion}		Yank {motion} text as a new line into register x.
 {Visual}["x]gly		Yank the selected text as a new line into register x.
 			When repeated, the text will be automatically
@@ -209,7 +209,7 @@ First published version.
 Started development.
 
 ==============================================================================
-Copyright: (C) 2011-2016 Ingo Karkat
+Copyright: (C) 2011-2017 Ingo Karkat
 The VIM LICENSE applies to this plugin; see |copyright|.
 
 Maintainer:	Ingo Karkat <ingo@karkat.de>
