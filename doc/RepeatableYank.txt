@@ -185,6 +185,9 @@ IDEAS							*RepeatableYank-ideas*
 ==============================================================================
 HISTORY						      *RepeatableYank-history*
 
+1.21	RELEASEME
+- BUG: {count}gyy does not repeat the count.
+
 1.20	21-Nov-2013
 - Use optional visualrepeat#reapply#VisualMode() for normal mode repeat of a
   visual mapping. When supplying a [count] on such repeat of a previous
@@ -206,7 +209,7 @@ First published version.
 Started development.
 
 ==============================================================================
-Copyright: (C) 2011-2015 Ingo Karkat
+Copyright: (C) 2011-2016 Ingo Karkat
 The VIM LICENSE applies to this plugin; see |copyright|.
 
 Maintainer:	Ingo Karkat <ingo@karkat.de>
