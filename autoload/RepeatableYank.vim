@@ -1,13 +1,12 @@
 " RepeatableYank.vim: Repeatable appending yank to a named register.
 "
 " DEPENDENCIES:
-"   - ingo/compat.vim autoload script
-"   - ingo/buffer/temp.vim autoload script
+"   - ingo-library.vim plugin
 "   - repeat.vim (vimscript #2136) autoload script (optional)
 "   - visualrepeat.vim (vimscript #3848) autoload script (optional)
 "   - visualrepeat/reapply.vim autoload script (optional)
 "
-" Copyright: (C) 2011-2016 Ingo Karkat
+" Copyright: (C) 2011-2019 Ingo Karkat
 "   The VIM LICENSE applies to this script; see ':help copyright'.
 "
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
@@ -189,9 +188,12 @@ function! s:Operator( isAsLine, type, ... )
 	    " still be useful, e.g. to easily repeatedly yank to the clipboard.
 	    let l:useRegister = toupper(s:activeRegister)
 	endif
-    else
+    elseif ingo#register#IsWritable(s:register)
 	let s:activeRegister = s:register
 	let l:useRegister = s:register
+    else
+	execute "normal! \<C-\>\<C-n>\<Esc>" | " Beep.
+	return
     endif
     let l:yankCmd = '"' . l:useRegister . 'y'
 "****D echomsg '****' s:register l:yankCmd
