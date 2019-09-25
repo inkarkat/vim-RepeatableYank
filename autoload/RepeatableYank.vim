@@ -1,13 +1,12 @@
 " RepeatableYank.vim: Repeatable appending yank to a named register.
 "
 " DEPENDENCIES:
-"   - ingo/compat.vim autoload script
-"   - ingo/buffer/temp.vim autoload script
+"   - ingo-library.vim plugin
 "   - repeat.vim (vimscript #2136) autoload script (optional)
 "   - visualrepeat.vim (vimscript #3848) autoload script (optional)
 "   - visualrepeat/reapply.vim autoload script (optional)
 "
-" Copyright: (C) 2011-2016 Ingo Karkat
+" Copyright: (C) 2011-2019 Ingo Karkat
 "   The VIM LICENSE applies to this script; see ':help copyright'.
 "
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
@@ -184,15 +183,37 @@ function! s:Operator( isAsLine, type, ... )
 	    let s:activeRegister = g:RepeatableYank_DefaultRegister
 	    let l:useRegister = s:activeRegister
 	else
-	    " Append (in case of named registers) to the previously used
-	    " register. Otherwise, overwrite the register contents. This can
-	    " still be useful, e.g. to easily repeatedly yank to the clipboard.
+	    " Append to the previously used register.
 	    let l:useRegister = toupper(s:activeRegister)
 	endif
-    else
+    elseif ingo#register#IsWritable(s:register)
 	let s:activeRegister = s:register
 	let l:useRegister = s:register
+    else
+	execute "normal! \<C-\>\<C-n>\<Esc>" | " Beep.
+	return
     endif
+
+    if l:useRegister !~# '^\a$'
+	" Cannot directly append to a non-named register. Use a named register
+	" temporarily for the yank.
+	let l:tempRegister = 'z'
+	let l:save_reg = getreg(l:tempRegister)
+	let l:save_regtype = getregtype(l:tempRegister)
+
+	if s:register ==# '"'
+	    " Repeated yank; transfer the register's contents to the temp
+	    " register so that the yank is properly appended.
+	    call setreg(l:tempRegister, getreg(l:useRegister), getregtype(l:useRegister))
+	    let l:useRegister = toupper(l:tempRegister)
+	else
+	    " The register has just been specified; we want to accumulate from
+	    " scratch.
+	    call setreg(l:tempRegister, '')
+	    let l:useRegister = l:tempRegister
+	endif
+    endif
+
     let l:yankCmd = '"' . l:useRegister . 'y'
 "****D echomsg '****' s:register l:yankCmd
     if ! a:0
@@ -228,6 +249,22 @@ function! s:Operator( isAsLine, type, ... )
     endif
 
     echomsg s:YankMessage(visualmode(), line("'>") - line("'<") + 1, getreg(l:useRegister))
+
+    if exists('l:tempRegister')
+	" Move the temp uppercase named register ...
+	let [l:tempRegisterContent, l:tempRegisterType] = [getreg(l:tempRegister), getregtype(l:tempRegister)]
+
+	" Restore the temp uppercase named register.
+	call setreg(l:tempRegister, l:save_reg, l:save_regtype)
+
+	" ... to the active register.
+	call setreg(s:activeRegister, l:tempRegisterContent, l:tempRegisterType)
+
+	" Because of the yank, the unnamed register is still aliased to the temp
+	" register, and restoring it also updated it. That's unfortunate, as it
+	" already contained the right content. Need to explicitly restore it.
+	call setreg('"', l:tempRegisterContent, l:tempRegisterType)
+    endif
 
     if a:0
 	if a:0 >= 2 && a:2
