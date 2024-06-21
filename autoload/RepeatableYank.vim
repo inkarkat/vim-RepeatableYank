@@ -6,7 +6,7 @@
 "   - visualrepeat.vim (vimscript #3848) autoload script (optional)
 "   - visualrepeat/reapply.vim autoload script (optional)
 "
-" Copyright: (C) 2011-2019 Ingo Karkat
+" Copyright: (C) 2011-2024 Ingo Karkat
 "   The VIM LICENSE applies to this script; see ':help copyright'.
 "
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
@@ -176,7 +176,7 @@ function! s:YankMessage( visualmode, yankedLines, content )
 endfunction
 function! s:Operator( isAsLine, type, ... )
     let l:isRepetition = 0
-    if s:register ==# '"'
+    if s:register ==# ingo#register#Default()
 	let l:isRepetition = 1
 	if ! exists('s:activeRegister')
 	    " First-time use of gy, without an explicit register.
@@ -201,7 +201,7 @@ function! s:Operator( isAsLine, type, ... )
 	let l:save_reg = getreg(l:tempRegister)
 	let l:save_regtype = getregtype(l:tempRegister)
 
-	if s:register ==# '"'
+	if s:register ==# ingo#register#Default()
 	    " Repeated yank; transfer the register's contents to the temp
 	    " register so that the yank is properly appended.
 	    call setreg(l:tempRegister, getreg(l:useRegister), getregtype(l:useRegister))
@@ -224,7 +224,7 @@ function! s:Operator( isAsLine, type, ... )
 	" the repetition of the operatorfunc work as we want, we simply clear
 	" s:register. All other (linewise, visual) invocations of this function
 	" will set s:register again, anyhow.
-	let s:register = '"'
+	let s:register = ingo#register#Default()
     endif
 
     if a:type ==# 'visual'
@@ -263,7 +263,7 @@ function! s:Operator( isAsLine, type, ... )
 	" Because of the yank, the unnamed register is still aliased to the temp
 	" register, and restoring it also updated it. That's unfortunate, as it
 	" already contained the right content. Need to explicitly restore it.
-	call setreg('"', l:tempRegisterContent, l:tempRegisterType)
+	call setreg(ingo#register#Default(), l:tempRegisterContent, l:tempRegisterType)
     endif
 
     if a:0
