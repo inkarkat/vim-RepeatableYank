@@ -163,12 +163,9 @@ CONFIGURATION
 
 For a permanent configuration, put the following commands into your vimrc:
 
-Since you don't need this plugin to repeat yanks to the unnamed register (just
-use the built-in y), register "a is used as the default register, i.e. when
-you use gy for the first time without explicitly specifying a register. To
-change this default to another register (e.g. the clipboard), use:
+To change the default register to another register (e.g. quote\_alpha), use:
 
-    let g:RepeatableYank_DefaultRegister = '+'
+    let g:RepeatableYank_DefaultRegister = 'a'
 
 If you want to use different mappings, map your keys to the
 &lt;Plug&gt;RepeatableYank... mapping targets _before_ sourcing the script (e.g. in
@@ -201,6 +198,9 @@ HISTORY
   the specified {09-\*+~/-} register turned out to be far less useful (at least
   to me and Enno Nagel, who suggested this enhancement) than the ability to
   consistently accumulate in any register.
+- CHG: Change default register from "a to the configured default register
+  (typically quote\_quote), as that's consistent with Vim's built-in
+  behavior.
 
 __You need to update to ingo-library ([vimscript #4433](http://www.vim.org/scripts/script.php?script_id=4433)) version 1.039!__
 
@@ -227,7 +227,7 @@ __You need to separately
 - Started development.
 
 ------------------------------------------------------------------------------
-Copyright: (C) 2011-2019 Ingo Karkat -
+Copyright: (C) 2011-2024 Ingo Karkat -
 The [VIM LICENSE](http://vimdoc.sourceforge.net/htmldoc/uganda.html#license) applies to this plugin.
 
 Maintainer:     Ingo Karkat &lt;ingo@karkat.de&gt;
