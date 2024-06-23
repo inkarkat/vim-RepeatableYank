@@ -17,18 +17,19 @@ DESCRIPTION					  *RepeatableYank-description*
 Text fragments can be collected and accumulated by first yanking into a
 lowercase register, and then subsequently yanking into the uppercase variant.
 The problem is that the register must be specified on every yank command, and
-one accidental omission of uppercasing the register results in the
-irrecoverable loss of all fragments collected so far.
+one accidental failure to uppercase the register (i.e. slipping off the Shift
+key) results in the irrecoverable loss of all fragments collected so far.
 
 This can be somewhat remedied by enabling the non-default |cpo-y| setting,
 which allows a repeat of a yank (plus remembered last register) via |.|
 
 This plugin instead offers an alternative yank command |gy|, which allows to
-specify the accumulator register only once on its initial use, can then be
-repeated as an operator, linewise, in visual mode and via |.|, and enhances
-some yank semantics for special cases.  For example, subsequent blockwise
-yanks are merged as blocks to the right, instead of added below the existing
-text blocks.
+specify the accumulator register only once on its initial use (and supports
+accumulation into other writable registers like |quotestar| and |quoteplus|),
+can then be repeated as an operator, linewise, in visual mode and via |.|, and
+enhances some yank semantics for special cases.  For example, subsequent
+blockwise yanks are merged as blocks to the right, instead of added below the
+existing text blocks.
 
 RELATED WORKS								     *
 
@@ -43,14 +44,12 @@ USAGE							*RepeatableYank-usage*
 {Visual}["x]gy		Yank the selected text into register x.
 
 			Subsequent gy commands without an explicit register
-			and command repeats via |.| will append (in the case
-			of named registers {a-zA-Z}) the text to / overwrite
-			(for registers {0-9*+~/-}) the previously used
-			register x, until another register is explicitly
-			given.
-			Therefore, you can gradually build up text in a named
-			register, or easily update the system clipboard
-			without having to repeat the register on every yank.
+			and command repeats via |.| will append the text to
+			the previously used register x, until another register
+			is explicitly given.
+			Therefore, you can gradually collect text in any
+			register (not just named registers; only the unnamed
+			register cannot be used directly).
 						  *RepeatableYank-block-merge*
 			Subsequent blockwise yanks are merged as blocks to the
 			right:
@@ -131,10 +130,16 @@ don't turn into a mess of "word1word2word3":
 ==============================================================================
 INSTALLATION					 *RepeatableYank-installation*
 
-This script is packaged as a |vimball|. If you have the "gunzip" decompressor
-in your PATH, simply edit the *.vmb.gz package in Vim; otherwise, decompress
-the archive first, e.g. using WinZip. Inside Vim, install by sourcing the
-vimball or via the |:UseVimball| command. >
+The code is hosted in a Git repo at
+    https://github.com/inkarkat/vim-RepeatableYank
+You can use your favorite plugin manager, or "git clone" into a directory used
+for Vim |packages|. Releases are on the "stable" branch, the latest unstable
+development snapshot on "master".
+
+This script is also packaged as a |vimball|. If you have the "gunzip"
+decompressor in your PATH, simply edit the *.vmb.gz package in Vim; otherwise,
+decompress the archive first, e.g. using WinZip. Inside Vim, install by
+sourcing the vimball or via the |:UseVimball| command. >
     vim RepeatableYank*.vmb.gz
     :so %
 To uninstall, use the |:RmVimball| command.
@@ -142,7 +147,7 @@ To uninstall, use the |:RmVimball| command.
 DEPENDENCIES					 *RepeatableYank-dependencies*
 
 - Requires Vim 7.0 or higher.
-- Requires the |ingo-library.vim| plugin (vimscript #4433), version 1.008 or
+- Requires the |ingo-library.vim| plugin (vimscript #4433), version 1.039 or
   higher.
 - repeat.vim (vimscript #2136) plugin (optional).
 - visualrepeat.vim (vimscript #3848) plugin (version 2.00 or higher; optional)
@@ -153,11 +158,8 @@ CONFIGURATION					*RepeatableYank-configuration*
 For a permanent configuration, put the following commands into your |vimrc|:
 
 					    *g:RepeatableYank_DefaultRegister*
-Since you don't need this plugin to repeat yanks to the unnamed register (just
-use the built-in |y|), register "a is used as the default register, i.e. when
-you use |gy| for the first time without explicitly specifying a register. To
-change this default to another register (e.g. the clipboard), use: >
-    let g:RepeatableYank_DefaultRegister = '+'
+To change the default register to another register (e.g. |quote_alpha|), use: >
+    let g:RepeatableYank_DefaultRegister = 'a'
 <
 							*RepeatableYank-remap*
 If you want to use different mappings, map your keys to the
@@ -182,11 +184,25 @@ TODO							 *RepeatableYank-todo*
 
 IDEAS							*RepeatableYank-ideas*
 
+CONTRIBUTING					   *RepeatableYank-contribute*
+
+Report any bugs, send patches, or suggest features via the issue tracker at
+https://github.com/inkarkat/vim-RepeatableYank/issues or email (address below).
+
 ==============================================================================
 HISTORY						      *RepeatableYank-history*
 
-1.21	RELEASEME
+1.30	23-Jun-2024
 - BUG: {count}gyy does not repeat the count.
+- Emulate appending to a non-named register (through use of a temporary named
+  register). The previously advertised behavior of simply repeating a yank to
+  the specified {09-*+~/-} register turned out to be far less useful (at least
+  to me and Enno Nagel, who suggested this enhancement) than the ability to
+  consistently accumulate in any register.
+- CHG: Change default register from "a to the configured default register
+  (typically |quote_quote|), as that's consistent with Vim's built-in
+  behavior.
+  *** You need to update to ingo-library (vimscript #4433) version 1.039! ***
 
 1.20	21-Nov-2013
 - Use optional visualrepeat#reapply#VisualMode() for normal mode repeat of a
@@ -209,7 +225,7 @@ First published version.
 Started development.
 
 ==============================================================================
-Copyright: (C) 2011-2017 Ingo Karkat
+Copyright: (C) 2011-2024 Ingo Karkat
 The VIM LICENSE applies to this plugin; see |copyright|.
 
 Maintainer:	Ingo Karkat <ingo@karkat.de>

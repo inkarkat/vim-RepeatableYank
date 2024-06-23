@@ -4,7 +4,7 @@
 "   - Requires Vim 7.0 or higher.
 "   - RepeatableYank.vim autoload script.
 "
-" Copyright: (C) 2011-2016 Ingo Karkat
+" Copyright: (C) 2011-2024 Ingo Karkat
 "   The VIM LICENSE applies to this script; see ':help copyright'.
 "
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
@@ -52,7 +52,7 @@ set cpo&vim
 "- configuration ---------------------------------------------------------------
 
 if ! exists('g:RepeatableYank_DefaultRegister')
-    let g:RepeatableYank_DefaultRegister = 'a'
+    let g:RepeatableYank_DefaultRegister = ingo#register#Default()
 endif
 
 
