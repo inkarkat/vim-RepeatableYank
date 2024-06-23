@@ -191,7 +191,7 @@ https://github.com/inkarkat/vim-RepeatableYank/issues or email (address below).
 HISTORY
 ------------------------------------------------------------------------------
 
-##### 1.30    RELEASEME
+##### 1.30    23-Jun-2024
 - BUG: {count}gyy does not repeat the count.
 - Emulate appending to a non-named register (through use of a temporary named
   register). The previously advertised behavior of simply repeating a yank to
